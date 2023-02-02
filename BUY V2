@@ -1,0 +1,57 @@
+from bs4 import BeautifulSoup
+import time
+from audioplayer import AudioPlayer
+from selenium import webdriver
+#TLDR: Alerts me and prints a symbol that is to be inserted into SELL.py
+
+def main():
+
+    list = []
+    dict = {}
+    for i in range(90):
+        rlist = []
+        for fez in list:
+            currents = current(fez)
+            isInt = True
+            try:
+                float(currents)
+            except ValueError:
+                isInt = False
+            if isInt:
+                currents = float(currents)
+                if not fez in dict:
+                    dict[fez] = currents
+                else:
+                    if currents <= dict[fez]:
+                        dict[fez] = currents
+                    else:
+                        print(fez)
+                        AudioPlayer("C:/Users/LosPo/Downloads/bro.mp3").play(block=True)
+                        # Stores symbol that will be removed once loop has ended
+                        rlist.append(fez)
+        # Removes the symbols stored in rlist from list
+        for re in rlist:
+            list.remove(re)
+            # Simulate 1 minutes
+            time.sleep(120)
+
+# What the current() function does is:
+# Receiving the symbol of a share as input (gee)
+# Opening finance yahoo website of said share on Google Chrome
+# Scrapping the current price of said share and returning that value
+def current(gee):
+    driver = webdriver.Chrome()
+
+    wer = gee + '/'
+    ans = 'https://finance.yahoo.com/quote/' + wer
+
+    driver.get(ans)
+
+    html_text = driver.page_source
+    soup = BeautifulSoup(html_text, 'lxml')
+
+    current = soup.find('fin-streamer', class_="Fw(b) Fz(36px) Mb(-4px) D(ib)").text
+    current = current.replace(",", "")
+    return current
+
+main()
