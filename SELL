@@ -3,6 +3,8 @@ import time
 from playsound import playsound
 from selenium import webdriver
 
+# Alerts me when a price of a stock has dropped from its previous value 2 minutes ago
+
 driver = webdriver.Chrome()
 list = ['']
 dict={}
