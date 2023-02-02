@@ -1,0 +1,97 @@
+from bs4 import BeautifulSoup
+import time
+from audioplayer import AudioPlayer
+from selenium import webdriver
+
+# TLDR: The program will alert me and print a symbol of a share once certain conditions are met and
+# that symbol is supposed to be inserted into another program called BUY V2.py
+def main():
+
+    # This gets the shares symbols, to analyse, from lists and obtain the current value of the share
+    # through calling the function current() and checking if the current value of said share
+    # is at its lowest for the past ~30 minutes (at every 1 minute interval) and then updating the dicts
+    # where the price(lowest), key-value pair to its symbol, is stored.
+
+    lists = ['LU']
+    dicts = {}
+
+    # Simulates 30 x 1 minute (See line 35)
+    for i in range(30):
+        for gee in lists:
+            # Calling function current()
+
+            currentz = current(gee)
+
+            isInt = True
+            try:
+                float(currentz)
+            except ValueError:
+                isInt = False
+            if isInt:
+                currentz = float(currentz)
+                if not gee in dicts:
+                    # First time being stored
+                    dicts[gee] = currentz
+                else:
+                    # Storing of the lowest price
+                    if dicts[gee] > currentz:
+                        dicts[gee] = currentz
+        # Simulate 1 minute
+
+        time.sleep(60)
+
+
+    # After the 30 minutes, dicts is now be filled with key-value pairs of all the shares and
+    # their lowest value reached in the past 30 minutes (0930am to 0100am EST).
+    # The code below will then check the price of all the shares in lists (at every 2 minute interval)
+    # by calling the function current() for 1 hour and will alert me, with sound being played, when
+    # the current price of share is lower or equal the value stored in dicts
+
+    # Simulate 30 x 2 minutes (See line 68)
+    for i in range(30):
+        # This is a temporary list that helps stored symbols that are needed to be removed after the loop below is done
+        rlist = []
+        for wee in lists:
+            # Calling function current()
+            currents = current(wee)
+
+            isInt = True
+            try:
+                float(currents)
+            except ValueError:
+                isInt = False
+            if isInt:
+                # If current price of share is lower or equal to price stored in dicts
+                currents = float(currents)
+                if dicts[wee] >= currents:
+                    print(wee)
+                    AudioPlayer("C:/Users/LosPo/Downloads/bro.mp3").play(block=True)
+                    # Stores symbol that will be removed once loop has ended
+                    rlist.append(wee)
+        # Removes the symbols stored in rlist from lists
+        for re in rlist:
+            lists.remove(re)
+        # Simulate 2 minutes
+        time.sleep(120)
+
+
+# What the current() function does is:
+# Receiving the symbol of a share as input (gee)
+# Opening finance yahoo website of said share on Google Chrome
+# Scrapping the current price of said share and returning that value
+def current(gee):
+    driver = webdriver.Chrome()
+
+    wer = gee + '/'
+    ans = 'https://finance.yahoo.com/quote/' + wer
+
+    driver.get(ans)
+
+    html_text = driver.page_source
+    soup = BeautifulSoup(html_text, 'lxml')
+
+    current = soup.find('fin-streamer', class_="Fw(b) Fz(36px) Mb(-4px) D(ib)").text
+    current = current.replace(",", "")
+    return current
+
+main()
